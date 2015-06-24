@@ -66,7 +66,8 @@
     return self;
 }
 
-- (void) layoutSubViews {
+- (void) layoutSubviews {
+    [super layoutSubviews];
     
     NSLog(@"========Layout Sub Views being called");
     

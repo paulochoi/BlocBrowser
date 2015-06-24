@@ -147,7 +147,7 @@
     [self.awesomeToolbar setEnabled:[self.webView canGoBack] fourButtonWithTitle:kWebBrowserBackString];
     [self.awesomeToolbar setEnabled:[self.webView canGoForward] fourButtonWithTitle:kWebBrowserForwardString];
     [self.awesomeToolbar setEnabled:[self.webView isLoading] fourButtonWithTitle:kWebBrowserStopString];
-    [self.awesomeToolbar setEnabled:[self.webView isLoading] && self.webView.URL fourButtonWithTitle:kWebBrowserRefreshString];
+    [self.awesomeToolbar setEnabled:![self.webView isLoading] && self.webView.URL fourButtonWithTitle:kWebBrowserRefreshString];
 
 }
 
