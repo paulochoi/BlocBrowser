@@ -182,5 +182,21 @@
         
 }
 
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToPanWithOffset:(CGPoint)offset {
+    
+    NSLog(@"calling delegate");
+    CGPoint startingPoint = toolbar.frame.origin;
+    CGPoint newPoint = CGPointMake(startingPoint.x + offset.x, startingPoint.y + offset.y);
+    
+    CGRect potentialNewFrame = CGRectMake(newPoint.x, newPoint.y, CGRectGetWidth(toolbar.frame), CGRectGetHeight(toolbar.frame));
+    toolbar.frame = potentialNewFrame;
+    
+    
+    if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
+        NSLog(@"this works");
+        toolbar.frame = potentialNewFrame;
+    }
+}
+
 
 @end

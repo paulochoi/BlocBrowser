@@ -14,6 +14,8 @@
 @property (nonatomic, strong) NSArray *colors;
 @property (nonatomic, strong) NSArray *labels;
 @property (nonatomic, weak) UILabel *currentLabel;
+@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
+@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
 
 @end
 
@@ -21,6 +23,7 @@
 
 - (instancetype) initWithFourTitles:(NSArray *)titles {
     self = [super init];
+    
     
     NSLog(@"%@",titles);
     
@@ -60,7 +63,12 @@
             [self addSubview:thisLabel];
         }
         
-        NSLog(@"%@", self.subviews);
+        self.tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action: @selector(tapFired:)];
+        [self addGestureRecognizer:self.tapGesture];
+        
+        self.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action: @selector(panFired:)];
+        [self addGestureRecognizer:self.panGesture];
+        
     }
     
     return self;
@@ -113,46 +121,48 @@
     
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    UILabel *label = [self labelFromTouches:touches withEvent:event];
+- (void) tapFired:(UITapGestureRecognizer *) recognizer {
     
-    self.currentLabel = label;
-    self.currentLabel.alpha = 0.5;
-}
-
-- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    UILabel *label = [self labelFromTouches:touches withEvent:event];
-    
-    if (self.currentLabel != label) {
-        self.currentLabel.alpha = 1;
-    } else {
-        self.currentLabel.alpha = 0.5;
-    }
-}
-
-- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    UILabel *label = [self labelFromTouches:touches withEvent:event];
-    
-    if (self.currentLabel == label) {
-        NSLog(@"Label tapped: %@", self.currentLabel.text);
+    if (recognizer.state == UIGestureRecognizerStateRecognized) {
+        CGPoint location = [recognizer locationInView:self];
+        UIView *tappedView = [self hitTest:location withEvent:nil];
         
-        if ([self.delegate respondsToSelector:@selector(floatingToolbar:didSelectButtonwithTitle:)]) {
-            [self.delegate floatingToolbar:self didSelectButtonwithTitle:self.currentLabel.text];
+        if ([self.labels containsObject:tappedView]) {
+            if([self.delegate respondsToSelector:@selector(floatingToolbar:didSelectButtonwithTitle:)]){
+                [self.delegate floatingToolbar:self didSelectButtonwithTitle:((UILabel *)tappedView).text];
+            }
         }
+        
     }
-    
-    self.currentLabel.alpha = 1;
-    self.currentLabel = nil;
     
 }
 
-- (void) touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
-    self.currentLabel.alpha = 1;
-    self.currentLabel = nil;
+- (void) panFired: (UIPanGestureRecognizer *) recognizer {
+    
+    if (recognizer.state == UIGestureRecognizerStateChanged) {
+
+        CGPoint translation = [recognizer translationInView:self];
+        
+        NSLog(@"New translation: %@", NSStringFromCGPoint(translation));
+        NSLog(@"%@",self);
+        
+        
+        //[self.delegate floatingToolbar:self didTryToPanWithOffset:translation];
+        
+        if ([self.delegate respondsToSelector:@selector(floatingToolbar:didTryToPanWithOffset:)]){
+            NSLog(@"responded to delegate");
+            [self.delegate floatingToolbar:self didTryToPanWithOffset:translation];
+        } else {
+            NSLog(@"did not respond");
+        }
+        
+        [recognizer setTranslation:CGPointZero inView:self];
+    }
+
 }
+
 
 #pragma mark - Button Enabling
-
 - (void) setEnabled:(BOOL)enabled fourButtonWithTitle:(NSString *)title {
     NSUInteger index = [self.currentTitles indexOfObject:title];
     
