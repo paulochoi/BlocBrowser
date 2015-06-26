@@ -62,7 +62,12 @@
     
     self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:self.activityIndicator];
+
+    
+    self.awesomeToolbar.frame = CGRectMake(20, 100, 280, 60);
+
 }
+
 
 
 - (void)viewWillLayoutSubviews{
@@ -70,7 +75,6 @@
     
     static const CGFloat itemHeight = 50;
     CGFloat width = CGRectGetWidth(self.view.bounds);
-    CGFloat widthMinusBorder = CGRectGetWidth(self.view.bounds) - 40;
 
     CGFloat browserHeight = CGRectGetHeight(self.view.bounds) - itemHeight;
     
@@ -78,7 +82,6 @@
     self.webView.frame = CGRectMake(0, CGRectGetMaxY(self.textField.frame), width, browserHeight);
     
     //self.awesomeToolbar.frame = CGRectMake(20, 100, 280, 60);
-    self.awesomeToolbar.frame = CGRectMake(20, 100, widthMinusBorder, 60);
 }
 
 #pragma mark - UITextFieldDelegate
@@ -147,11 +150,12 @@
         [self.activityIndicator stopAnimating];
     }
     
+    
     [self.awesomeToolbar setEnabled:[self.webView canGoBack] fourButtonWithTitle:kWebBrowserBackString];
     [self.awesomeToolbar setEnabled:[self.webView canGoForward] fourButtonWithTitle:kWebBrowserForwardString];
     [self.awesomeToolbar setEnabled:[self.webView isLoading] fourButtonWithTitle:kWebBrowserStopString];
     [self.awesomeToolbar setEnabled:![self.webView isLoading] && self.webView.URL fourButtonWithTitle:kWebBrowserRefreshString];
-
+    
 }
 
 - (void) resetWebView {
@@ -168,33 +172,68 @@
     
 }
 
-- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didSelectButtonwithTitle:(NSString *)title {
-    NSLog(@"%@",title);
-    if ([title isEqual:kWebBrowserBackString]) {
-        [self.webView goBack];
-    } else if ([title isEqual:kWebBrowserForwardString]){
-        [self.webView goForward];
-    } else if ([title isEqual:kWebBrowserStopString]) {
-        [self.webView stopLoading];
-    } else if ([title isEqual:kWebBrowserRefreshString]) {
-        [self.webView reload];
-    }
-        
-}
+
 
 - (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToPanWithOffset:(CGPoint)offset {
     
-    NSLog(@"calling delegate");
+    //NSLog(@"calling delegate");
     CGPoint startingPoint = toolbar.frame.origin;
     CGPoint newPoint = CGPointMake(startingPoint.x + offset.x, startingPoint.y + offset.y);
     
     CGRect potentialNewFrame = CGRectMake(newPoint.x, newPoint.y, CGRectGetWidth(toolbar.frame), CGRectGetHeight(toolbar.frame));
-    toolbar.frame = potentialNewFrame;
+    //toolbar.frame = potentialNewFrame;
     
     
     if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
-        NSLog(@"this works");
+        //NSLog(@"this works");
         toolbar.frame = potentialNewFrame;
+    }
+}
+
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToZoomWithScale:(CGFloat)scale {
+    
+    CGRect newFrame = CGRectMake(toolbar.frame.origin.x, toolbar.frame.origin.y, CGRectGetWidth(toolbar.frame) * scale, CGRectGetHeight(toolbar.frame) * scale);
+    
+    NSLog(@"%f",newFrame.origin.x);
+    
+    //toolbar.frame = newFrame;
+
+
+    if (CGRectContainsRect(self.view.bounds, newFrame)){
+        toolbar.frame = newFrame;
+    }
+}
+
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didPressLongPress:(BOOL)pressed{
+    
+    NSMutableArray *mutableArray = [toolbar.buttons mutableCopy];
+    
+    for (NSInteger i = 0 ; i < mutableArray.count ; i++){
+        UIButton *button = (UIButton *)mutableArray[i];
+
+        NSLog(@"%@",((UIButton *)mutableArray[0]).backgroundColor);
+        
+        if (i == 3) {
+            [button setBackgroundColor:((UIButton *)mutableArray[0]).backgroundColor];
+            //button.titleLabel.backgroundColor = ((UIButton *)mutableArray[0]).titleLabel.backgroundColor;
+        } else {
+            [button setBackgroundColor:((UIButton *)mutableArray[i+1]).backgroundColor];
+            //button.titleLabel.backgroundColor = ((UIButton *)mutableArray[i+1]).titleLabel.backgroundColor;
+        }
+    }
+    toolbar.buttons = [mutableArray copy];
+}
+
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didPressButtonWithButton:(UIButton *)button{
+
+    if ([button.titleLabel.text isEqual:kWebBrowserBackString]) {
+        [self.webView goBack];
+    } else if ([button.titleLabel.text isEqual:kWebBrowserForwardString]){
+        [self.webView goForward];
+    } else if ([button.titleLabel.text isEqual:kWebBrowserStopString]) {
+        [self.webView stopLoading];
+    } else if ([button.titleLabel.text isEqual:kWebBrowserRefreshString]) {
+        [self.webView reload];
     }
 }
 
